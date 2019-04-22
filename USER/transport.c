@@ -53,14 +53,16 @@
 #include <string.h>
 #include <stdlib.h>
 #endif
-
+#include "lwip/api.h"
+#include "lwip_comm.h"
 #if defined(WIN32)
 #include <Iphlpapi.h>
 #else
 //#include <sys/ioctl.h>
 //#include <net/if.h>
 #endif
-
+#define MQTT_REMOTE_PORT				8087	//定义远端主机的IP地址
+#define MQTT_CLIENT_RX_BUFSIZE	2000	//接收缓冲区长度
 /**
 This simple low-level implementation assumes a single connection for a single thread. Thus, a static
 variable is used for that connection.
@@ -68,37 +70,54 @@ On other scenarios, the user must solve this by taking into account that the cur
 MQTTPacket_read() has a function pointer for a function call to get the data to a buffer, but no provisions
 to know the caller or other indicator (the socket id): int (*getfn)(unsigned char*, int)
 */
-static int mysock = INVALID_SOCKET;
+struct netconn *mqtt_clientconn;
+u8 mqtt_client_recvbuf[MQTT_CLIENT_RX_BUFSIZE];	//TCP客户端接收数据缓冲区
 
+/*this function used to transfer char type IP address to int IP address*/
+static void getIPaddress(char *ipaddr, unsigned char *ip_addr)
+{
+	if(ipaddr == NULL || ip_addr == NULL)
+		return;
+	char *p = strtok(ipaddr, ".");
+	while(p){
+		*ip_addr = atoi(p);
+		p = strtok(NULL, ".");
+		ip_addr++;
+	}
+}
 
 int transport_sendPacketBuffer(int sock, unsigned char* buf, int buflen)
 {
 	int rc = 0;
-	rc = write(sock, buf, buflen);
+	//rc = write(sock, buf, buflen);
+	rc = netconn_write(mqtt_clientconn ,buf,strlen((char*)buf),NETCONN_COPY); //发送tcp_server_sentbuf中的数据
+	if(rc != ERR_OK)
+	{
+		printf("发送失败\r\n");
+	}
 	return rc;
 }
 
 
 int transport_getdata(unsigned char* buf, int count)
 {
-	int rc = recv(mysock, buf, count, 0);
-	//printf("received %d bytes count %d\n", rc, (int)count);
-	return rc;
+	int recv_err;
+	struct netbuf *recvbuf;
+	if((recv_err = netconn_recv(mqtt_clientconn,&recvbuf)) != ERR_OK){
+		return -1;
+	}
+	return recv_err;
 }
 
 int transport_getdatanb(void *sck, unsigned char* buf, int count)
 {
-	int sock = *((int *)sck); 	/* sck: pointer to whatever the system may use to identify the transport */
-	/* this call will return after the timeout set on initialization if no bytes;
-	   in your system you will use whatever you use to get whichever outstanding
-	   bytes your socket equivalent has ready to be extracted right now, if any,
-	   or return immediately */
-	int rc = recv(sock, buf, count, 0);	
-	if (rc == -1) {
-		/* check error conditions from your system here, and return -1 */
-		return 0;
+	int recv_err;
+	struct netbuf *recvbuf;
+	if((recv_err = netconn_recv(mqtt_clientconn,&recvbuf)) != ERR_OK){
+		return -1;
 	}
-	return rc;
+	
+	return recv_err;
 }
 
 /**
@@ -106,138 +125,31 @@ return >=0 for a socket descriptor, <0 for an error code
 @todo Basically moved from the sample without changes, should accomodate same usage for 'sock' for clarity,
 removing indirections
 */
-
-#if 0
-int transport_open(char* addr, int port)
+int transport_open(char *addr, int port)	//create a socket and connect the server
 {
-int* sock = &mysock;
-	int type = SOCK_STREAM;
-	struct sockaddr_in address;
-#if defined(AF_INET6)
-	struct sockaddr_in6 address6;
-#endif
-	int rc = -1;
-#if defined(WIN32)
-	short family;
-#else
-	sa_family_t family = AF_INET;
-#endif
-	struct addrinfo *result = NULL;
-	struct addrinfo hints = {0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, NULL, NULL, NULL};
-	static struct timeval tv;
-
-	*sock = -1;
-	if (addr[0] == '[')
-	  ++addr;
-
-	if ((rc = getaddrinfo(addr, NULL, &hints, &result)) == 0)
-	{
-		struct addrinfo* res = result;
-
-		/* prefer ip4 addresses */
-		while (res)
-		{
-			if (res->ai_family == AF_INET)
-			{
-				result = res;
-				break;
-			}
-			res = res->ai_next;
-		}
-
-#if defined(AF_INET6)
-		if (result->ai_family == AF_INET6)
-		{
-			address6.sin6_port = htons(port);
-			address6.sin6_family = family = AF_INET6;
-			address6.sin6_addr = ((struct sockaddr_in6*)(result->ai_addr))->sin6_addr;
-		}
-		else
-#endif
-		if (result->ai_family == AF_INET)
-		{
-			address.sin_port = htons(port);
-			address.sin_family = family = AF_INET;
-			address.sin_addr = ((struct sockaddr_in*)(result->ai_addr))->sin_addr;
-		}
-		else
-			rc = -1;
-
-		freeaddrinfo(result);
+	err_t err;
+	static ip_addr_t server_ipaddr, loca_ipaddr;
+	static u16_t 		 server_port, loca_port;
+	server_port = MQTT_REMOTE_PORT;			//定义远程服务器端口
+	getIPaddress(addr,lwipdev.remoteip);	//将char型数组转换成整形数组
+	IP4_ADDR(&server_ipaddr, lwipdev.remoteip[0],lwipdev.remoteip[1], lwipdev.remoteip[2],lwipdev.remoteip[3]);
+	mqtt_clientconn = netconn_new(NETCONN_TCP);  //创建一个TCP链接
+	err = netconn_connect(mqtt_clientconn,&server_ipaddr,server_port);//连接服务器
+	if(err != ERR_OK){
+		netconn_delete(mqtt_clientconn); //返回值不等于ERR_OK,删除tcp_clientconn连接
+		goto END;
 	}
-
-	if (rc == 0)
-	{
-		*sock =	socket(family, type, 0);
-		if (*sock != -1)
-		{
-#if defined(NOSIGPIPE)
-			int opt = 1;
-
-			if (setsockopt(*sock, SOL_SOCKET, SO_NOSIGPIPE, (void*)&opt, sizeof(opt)) != 0)
-				Log(TRACE_MIN, -1, "Could not set SO_NOSIGPIPE for socket %d", *sock);
-#endif
-
-			if (family == AF_INET)
-				rc = connect(*sock, (struct sockaddr*)&address, sizeof(address));
-	#if defined(AF_INET6)
-			else
-				rc = connect(*sock, (struct sockaddr*)&address6, sizeof(address6));
-	#endif
-		}
-	}
-	if (mysock == INVALID_SOCKET)
-		return rc;
-
-	tv.tv_sec = 1;  /* 1 second Timeout */
-	tv.tv_usec = 0;  
-	setsockopt(mysock, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
-	return mysock;
-}
-
-#endif 
-int transport_open(char *addr, int port)
-{
-	int *sock = &mysock;
-	struct hostent *server;
-	struct sockaddr_in serv_addr;
-	static struct timeval tv;
-	int timeout = 1000;
-	fd_set readset
-	fd_set writeset;
+	mqtt_clientconn->recv_timeout = 10;
+	netconn_getaddr(mqtt_clientconn,&loca_ipaddr,&loca_port,1); //获取本地IP主机IP地址和端口号
+	printf("连接上服务器%d.%d.%d.%d,本机端口号为:%d\r\n",lwipdev.remoteip[0],lwipdev.remoteip[1], lwipdev.remoteip[2],lwipdev.remoteip[3],loca_port);
+	goto END;
+END:
+	return err;
 	
-	*sock = socket(AF_INET, SOCK_STREAM, 0);
-	if(*sock < 0){
-		printf("[ERROR] Create socket failed\n");
-	}
-	
-	server = gethostbyname(addr);
-	if(server == NULL){
-		printf("[ERROR] Get host ip failed\n");
-	}
-	
-	memset(&serv_addr, 0, sizeof(serv_addr));
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(port);
-	memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
-	
-	if(connect(*sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0){
-		printf("[ERROR] connect failed\n");
-		return -1;
-	}
-	
-	tv.tv_sec = 10;
-	tv.tv_usec = 0;
-	setsockopt(mysock, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
-	return mysock;
 }
 int transport_close(int sock)
 {
-int rc;
-
-	rc = shutdown(sock, SHUT_WR);
-	rc = recv(sock, NULL, (size_t)0, 0);
-	rc = close(sock);
-
-	return rc;
+	netconn_close(mqtt_clientconn);
+	netconn_delete(mqtt_clientconn);
+	return 0;
 }
