@@ -3,6 +3,7 @@
 "..\obj\stm32f4xx_it.o"
 "..\obj\system_stm32f4xx.o"
 "..\obj\transport.o"
+"..\obj\mqtt_client.o"
 "..\obj\key.o"
 "..\obj\led.o"
 "..\obj\timer.o"

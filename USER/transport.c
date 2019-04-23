@@ -61,7 +61,7 @@
 //#include <sys/ioctl.h>
 //#include <net/if.h>
 #endif
-#define MQTT_REMOTE_PORT				8087	//定义远端主机的IP地址
+
 #define MQTT_CLIENT_RX_BUFSIZE	2000	//接收缓冲区长度
 /**
 This simple low-level implementation assumes a single connection for a single thread. Thus, a static
@@ -130,7 +130,7 @@ int transport_open(char *addr, int port)	//create a socket and connect the serve
 	err_t err;
 	static ip_addr_t server_ipaddr, loca_ipaddr;
 	static u16_t 		 server_port, loca_port;
-	server_port = MQTT_REMOTE_PORT;			//定义远程服务器端口
+	server_port = port;			//定义远程服务器端口
 	getIPaddress(addr,lwipdev.remoteip);	//将char型数组转换成整形数组
 	IP4_ADDR(&server_ipaddr, lwipdev.remoteip[0],lwipdev.remoteip[1], lwipdev.remoteip[2],lwipdev.remoteip[3]);
 	mqtt_clientconn = netconn_new(NETCONN_TCP);  //创建一个TCP链接

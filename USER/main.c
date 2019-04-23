@@ -116,6 +116,7 @@ int main(void)
 		delay_ms(500);
 	}
 	LCD_ShowString(30,130,200,20,16,"Lwip Init Success!"); 		//lwip初始化成功
+	
 	while(tcp_client_init()) 									//初始化tcp_client(创建tcp_client线程)
 	{
 		LCD_ShowString(30,150,200,20,16,"TCP Client failed!!"); //tcp客户端创建失败
@@ -124,6 +125,7 @@ int main(void)
 		delay_ms(500);
 	}
 	LCD_ShowString(30,150,200,20,16,"TCP Client Success!"); 	//tcp客户端创建成功
+	
 	OSTaskCreate(start_task,(void*)0,(OS_STK*)&START_TASK_STK[START_STK_SIZE-1],START_TASK_PRIO);
 	OSStart(); //开启UCOS
 }
