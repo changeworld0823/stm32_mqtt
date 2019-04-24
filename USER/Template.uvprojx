@@ -436,6 +436,11 @@
               <FileType>1</FileType>
               <FilePath>.\transport.c</FilePath>
             </File>
+            <File>
+              <FileName>mqtt_client.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\mqtt_client.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
