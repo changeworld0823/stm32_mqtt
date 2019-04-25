@@ -45,7 +45,7 @@
 #define TCP_SND_QUEUELEN        (2* TCP_SND_BUF/TCP_MSS)	//TCP_SND_QUEUELEN: TCP发送缓冲区大小(pbuf).这个值最小为(2 * TCP_SND_BUF/TCP_MSS)
 #define TCP_WND                 (2*TCP_MSS)		//TCP发送窗口
 #define LWIP_ICMP               1 	//使用ICMP协议
-#define LWIP_DHCP               1	//使用DHCP
+#define LWIP_DHCP               0	//使用DHCP
 #define LWIP_UDP                1 	//使用UDP服务
 #define UDP_TTL                 255 //UDP数据包生存时间
 #define LWIP_STATS 0

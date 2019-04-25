@@ -96,7 +96,7 @@ void lwip_comm_default_ip_set(__lwip_dev *lwipx)
 	lwipx->remoteip[0]=192;	
 	lwipx->remoteip[1]=168;
 	lwipx->remoteip[2]=1;
-	lwipx->remoteip[3]=114;
+	lwipx->remoteip[3]=11;
 	//MAC地址设置(高三字节固定为:2.0.0,低三字节用STM32唯一ID)
 	lwipx->mac[0]=2;//高三字节(IEEE称之为组织唯一ID,OUI)地址固定为:2.0.0
 	lwipx->mac[1]=0;

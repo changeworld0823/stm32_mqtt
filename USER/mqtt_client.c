@@ -16,12 +16,27 @@
 #define MQTT_CLIENT_STK_SIZE	300
 //任务堆栈
 OS_STK MQTT_CLIENT_TASK_STK[MQTT_CLIENT_STK_SIZE];
+INT8U mqtt_client_pub(char *host_addr, int portnum);
 
 static void mqtt_client_thread(void *arg)
 {
+	static int mqtt_client_state = 0;
+	int rc;
 	while(1)
 	{
-		transport_open(IP_ADDR,MQTT_REMOTE_PORT);
+		switch(mqtt_client_state){
+			case 0:
+				rc = transport_open(IP_ADDR,MQTT_REMOTE_PORT);
+				if(rc == ERR_OK)
+					mqtt_client_state ++;
+				break;
+			case 1:
+				mqtt_client_pub(IP_ADDR, MQTT_REMOTE_PORT);
+				mqtt_client_state++;
+				break;
+			default: break;
+		}
+		
 		OSTimeDlyHMSM(0,0,0,10);  //延时10ms
 	}
 }
@@ -38,7 +53,7 @@ INT8U mqtt_client_init(void)
 	return res;
 }
 
-INT8U mqtt_client_pub(char *host_addr, char *portnum)
+INT8U mqtt_client_pub(char *host_addr, int portnum)
 {
 	MQTTPacket_connectData data = MQTTPacket_connectData_initializer;	//初始化MQTT连接数据结构体
 	int rc = 0;
@@ -49,16 +64,16 @@ INT8U mqtt_client_pub(char *host_addr, char *portnum)
 	char *payload = "hello world payload";
 	int payloadlen = strlen("hello world payload");
 	int len = 0;
-	char *host = "192.168.1.136";
+	char *host = "192.168.1.11";
 	int port = 1883;
 	
-	if(host_addr != NULL)	host = host_addr;		//获取服务器地址
-	if(portnum != NULL)	port = atoi(portnum);		//获取服务器监听端口
+	/*if(host_addr != NULL)	host = host_addr;		//获取服务器地址
+	if(portnum != 0)	port = portnum;		//获取服务器监听端口
 	
 	mysock = transport_open(host,port);				//建立MQTT连接
 	if(mysock < 0)	return mysock;
 	printf("Sending to hostname %s port %d\n", host, port);
-	
+	*/
 	data.clientID.cstring = "me";
 	data.keepAliveInterval = 20;
 	data.cleansession = 1;
@@ -89,14 +104,14 @@ exit:
 int toStop = 0;
 void cfinish(int sig)
 {
-	signal(SIGINT, NULL);
+	//signal(SIGINT, NULL);
 	toStop = 1;
 }
 
 void stop_init(void)
 {
-	signal(SIGINT,cfinish);
-	signal(SIGTERM, cfinish);
+	//signal(SIGINT,cfinish);
+	//signal(SIGTERM, cfinish);
 }
 INT8U mqtt_client_sub(char *host_addr, char *portnum)
 {
@@ -171,19 +186,19 @@ exit:
 }
 
 #define KEEPALIVE_INTERVAL	20
-time_t old_t;
+//time_t old_t;
 void start_ping_timer(void)
 {
-	time(&old_t);
-	old_t += KEEPALIVE_INTERVAL / 2 + 1;
+	//time(&old_t);
+	//old_t += KEEPALIVE_INTERVAL / 2 + 1;
 }
 
 int time_to_ping(void)
 {
-	time_t t;
-	time(&t);
-	if(t >= old_t)
-		return 1;
+	//time_t t;
+	//time(&t);
+	//if(t >= old_t)
+	//	return 1;
 	return 0;
 }
 

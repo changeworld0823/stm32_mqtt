@@ -130,21 +130,25 @@ int transport_open(char *addr, int port)	//create a socket and connect the serve
 	err_t err;
 	static ip_addr_t server_ipaddr, loca_ipaddr;
 	static u16_t 		 server_port, loca_port;
-	server_port = port;			//定义远程服务器端口
-	getIPaddress(addr,lwipdev.remoteip);	//将char型数组转换成整形数组
+	server_port = 8087;			//定义远程服务器端口
+	//getIPaddress(addr,lwipdev.remoteip);	//将char型数组转换成整形数组
 	IP4_ADDR(&server_ipaddr, lwipdev.remoteip[0],lwipdev.remoteip[1], lwipdev.remoteip[2],lwipdev.remoteip[3]);
-	mqtt_clientconn = netconn_new(NETCONN_TCP);  //创建一个TCP链接
-	err = netconn_connect(mqtt_clientconn,&server_ipaddr,server_port);//连接服务器
-	if(err != ERR_OK){
-		netconn_delete(mqtt_clientconn); //返回值不等于ERR_OK,删除tcp_clientconn连接
-		goto END;
+	
+	while(1)
+	{
+		mqtt_clientconn = netconn_new(NETCONN_TCP);  //创建一个TCP链接
+		err = netconn_connect(mqtt_clientconn,&server_ipaddr,server_port);//连接服务器
+		if(err != ERR_OK){
+			netconn_delete(mqtt_clientconn); //返回值不等于ERR_OK,删除tcp_clientconn连接
+			return err;
+		}
+		else if(err == ERR_OK){
+			mqtt_clientconn->recv_timeout = 10;
+			netconn_getaddr(mqtt_clientconn,&loca_ipaddr,&loca_port,1); //获取本地IP主机IP地址和端口号
+			printf("连接上服务器%d.%d.%d.%d,本机端口号为:%d\r\n",lwipdev.remoteip[0],lwipdev.remoteip[1], lwipdev.remoteip[2],lwipdev.remoteip[3],loca_port);
+			return err;
+		}
 	}
-	mqtt_clientconn->recv_timeout = 10;
-	netconn_getaddr(mqtt_clientconn,&loca_ipaddr,&loca_port,1); //获取本地IP主机IP地址和端口号
-	printf("连接上服务器%d.%d.%d.%d,本机端口号为:%d\r\n",lwipdev.remoteip[0],lwipdev.remoteip[1], lwipdev.remoteip[2],lwipdev.remoteip[3],loca_port);
-	goto END;
-END:
-	return err;
 	
 }
 int transport_close(int sock)
