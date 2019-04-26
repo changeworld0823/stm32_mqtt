@@ -157,7 +157,7 @@
         <tRSysVw>1</tRSysVw>
         <sRunDeb>0</sRunDeb>
         <sLrtime>0</sLrtime>
-        <nTsel>6</nTsel>
+        <nTsel>11</nTsel>
         <sDll></sDll>
         <sDllPa></sDllPa>
         <sDlgDll></sDlgDll>
@@ -168,9 +168,19 @@
         <tDlgDll></tDlgDll>
         <tDlgPa></tDlgPa>
         <tIfile></tIfile>
-        <pMon>Segger\JL2CM3.dll</pMon>
+        <pMon>STLink\ST-LINKIII-KEIL_SWO.dll</pMon>
       </DebugOpt>
       <TargetDriverDllRegistry>
+        <SetRegEntry>
+          <Number>0</Number>
+          <Key>ARMRTXEVENTFLAGS</Key>
+          <Name>-L70 -Z18 -C0 -M0 -T1</Name>
+        </SetRegEntry>
+        <SetRegEntry>
+          <Number>0</Number>
+          <Key>ST-LINKIII-KEIL_SWO</Key>
+          <Name>-U37FF6C064D53373459251643 -O206 -S1 -C0 -A0 -N00("ARM CoreSight SW-DP") -D00(2BA01477) -L00(0) -TO18 -TC10000000 -TP21 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO7 -FD20000000 -FC1000 -FN1 -FF0STM32F4xx_1024.FLM -FS08000000 -FL0100000 -FP0($$Device:STM32F407ZG$CMSIS\Flash\STM32F4xx_1024.FLM)</Name>
+        </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGTARM</Key>
@@ -184,7 +194,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name></Name>
+          <Name>(105=-1,-1,-1,-1,0)</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -201,18 +211,66 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>75</LineNumber>
+          <LineNumber>121</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134218706</Address>
+          <Address>134219014</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>E:\STM32F4xx脳脢脕脧\STM32F4脤陆脣梅掳忙\驴芒潞炉脢媒脌媒鲁脤(脤陆脣梅掳忙)\脢碌脩茅50 脪脭脤芦脥酶脢碌脩茅\LWIP\LWIP脌媒鲁脤 V1.0\LWIP_NETCON脢碌脩茅 TCP 驴脥禄搂露脣\USER\main.c</Filename>
+          <Filename>.\main.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Template\main.c\75</Expression>
+          <Expression>\\Template\main.c\121</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>49</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134254420</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\LWIP\lwip_app\tcp_client_demo\tcp_client_demo.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\Template\../LWIP/lwip_app/tcp_client_demo/tcp_client_demo.c\49</Expression>
+        </Bp>
+        <Bp>
+          <Number>2</Number>
+          <Type>0</Type>
+          <LineNumber>60</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134254496</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\LWIP\lwip_app\tcp_client_demo\tcp_client_demo.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\Template\../LWIP/lwip_app/tcp_client_demo/tcp_client_demo.c\60</Expression>
+        </Bp>
+        <Bp>
+          <Number>3</Number>
+          <Type>0</Type>
+          <LineNumber>56</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134254486</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\LWIP\lwip_app\tcp_client_demo\tcp_client_demo.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\Template\../LWIP/lwip_app/tcp_client_demo/tcp_client_demo.c\56</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>

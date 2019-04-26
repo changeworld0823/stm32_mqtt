@@ -17,10 +17,11 @@
 //任务堆栈
 OS_STK MQTT_CLIENT_TASK_STK[MQTT_CLIENT_STK_SIZE];
 INT8U mqtt_client_pub(char *host_addr, int portnum);
+void mqtt_thread(void *arg);
 
 static void mqtt_client_thread(void *arg)
 {
-	static int mqtt_client_state = 0;
+	static int mqtt_client_state = 1;
 	int rc;
 	while(1)
 	{
@@ -47,7 +48,7 @@ INT8U mqtt_client_init(void)
 	OS_CPU_SR cpu_sr;
 	
 	OS_ENTER_CRITICAL();	//关中断
-	res = OSTaskCreate(mqtt_client_thread,(void*)0,(OS_STK*)&MQTT_CLIENT_TASK_STK[MQTT_CLIENT_STK_SIZE-1],MQTT_CLIENT_PRIO); //创建TCP客户端线程
+	res = OSTaskCreate(mqtt_thread,(void*)0,(OS_STK*)&MQTT_CLIENT_TASK_STK[MQTT_CLIENT_STK_SIZE-1],MQTT_CLIENT_PRIO); //创建TCP客户端线程
 	OS_EXIT_CRITICAL();		//开中断
 	
 	return res;
@@ -65,15 +66,15 @@ INT8U mqtt_client_pub(char *host_addr, int portnum)
 	int payloadlen = strlen("hello world payload");
 	int len = 0;
 	char *host = "192.168.1.11";
-	int port = 1883;
+	int port = 8087;
 	
-	/*if(host_addr != NULL)	host = host_addr;		//获取服务器地址
+	if(host_addr != NULL)	host = host_addr;		//获取服务器地址
 	if(portnum != 0)	port = portnum;		//获取服务器监听端口
 	
 	mysock = transport_open(host,port);				//建立MQTT连接
 	if(mysock < 0)	return mysock;
 	printf("Sending to hostname %s port %d\n", host, port);
-	*/
+	
 	data.clientID.cstring = "me";
 	data.keepAliveInterval = 20;
 	data.cleansession = 1;
@@ -83,7 +84,7 @@ INT8U mqtt_client_pub(char *host_addr, int portnum)
 	
 	len = MQTTSerialize_connect((unsigned char *)buf, buflen, &data);
 	
-	topicString.cstring = "mytopic";
+	topicString.cstring = "topic";
 
 	len += MQTTSerialize_publish((unsigned char *)(buf+len), buflen - len,
 		0, 0, 0, 0, topicString, (unsigned char *)payload, payloadlen);
@@ -228,3 +229,157 @@ INT8U mqtt_client_ping()
 	rc = transport_sendPacketBuffer(mysock, buf, len);
 	
 }
+
+
+#if 1
+void mqtt_thread(void *arg)
+{
+	MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
+	MQTTString receivedTopic;
+	int rc = 0;
+	char buf[200];
+	int buflen = sizeof(buf);
+	int mysock = 0;
+	MQTTString topicString = MQTTString_initializer;
+	int payloadlen_in;
+	unsigned char *payload_in;
+	unsigned short msgid = 1;
+	int subcount;
+	int granted_qos = 0;
+	unsigned char sessionPresent, connack_rc;
+	unsigned short submsgid;
+	int len = 0;
+	int req_qos = 1;
+	unsigned char dup;
+	int qos;
+	unsigned char retained;
+	
+	char *host = "192.168.1.11";
+	int port = 8087;
+	uint8_t msgtypes = CONNECT;
+	//uint32_t curtick = xTaskGetTickCount();
+	printf("socket connect to server\n");
+	mysock = transport_open(host, port);
+	if(mysock < 0)
+		return ;
+	printf("sending to hostname %s port %d\n", host, port);
+	data.clientID.cstring = "me";
+	data.keepAliveInterval = 50;
+	data.cleansession = 1;
+	data.username.cstring = "";
+	data.password.cstring = "";
+	data.MQTTVersion = 4;
+	while(1)
+	{
+		/*if((xTaskGetTickCount() - curtick) > (data.keepAliveInterval/2*1000))
+		{
+			if(msgtypes == 0)
+			{
+				curtick = xTaskGetTickCount();
+				msgtypes = PINGREQ;
+			}
+		}
+		*/
+		switch(msgtypes)
+		{
+			case CONNECT:
+				len = MQTTSerialize_connect(buf, buflen, &data);
+				rc = transport_sendPacketBuffer(mysock, (unsigned char*)buf, len);
+				if(rc == len)
+					printf("Send CONNECT successfully");
+				else
+					printf("send CONNECT failed\n");
+				printf("MQTT connect OK\n");
+				msgtypes = CONNACK;
+				break;
+			case CONNACK:
+				if (MQTTDeserialize_connack(&sessionPresent, &connack_rc, buf, buflen) != 1 || connack_rc != 0)
+				{
+					printf("unable to connect,return code %d\n",connack_rc);
+				}
+				else printf("MQTT is connect OK\n");
+				msgtypes = SUBSCRIBE;
+				break;
+			case SUBSCRIBE:
+				topicString.cstring = "ledtest";
+				len = MQTTSerialize_subscribe(buf, buflen, 0, msgid, 1, &topicString, &req_qos);
+				rc = transport_sendPacketBuffer(mysock, (unsigned char *)buf, len);
+				if(rc == len)
+					printf("send SUNSCRIBE suc.\n");
+				else printf("send SUBSCRIBE failed\n");
+				printf("client sub:%s\n",topicString.cstring);
+				msgtypes = 0;
+				break;
+			case SUBACK:        
+				rc = MQTTDeserialize_suback(&submsgid, 1, &subcount, &granted_qos, buf, buflen);                                                        
+				printf("granted qos is %d\n", granted_qos);                                                                
+				msgtypes = 0;
+				break;
+			case PUBLISH:        
+				rc = MQTTDeserialize_publish(&dup, &qos, &retained, &msgid, &receivedTopic, &payload_in, &payloadlen_in, buf, buflen);
+				printf("message arrived : %s\n", payload_in);
+				if(strstr(payload_in,"on"))
+				{
+					printf("LED on!!");
+				}
+				else if(strstr(payload_in,"off"))
+				{
+					printf("LED off!!");
+				}
+				if(qos == 1)
+				{
+					printf("publish qos is 1,send publish ack.");
+					memset(buf,0,buflen);
+					len = MQTTSerialize_ack(buf,buflen,PUBACK,dup,msgid);   //publish ack                        
+					rc = transport_sendPacketBuffer(mysock, (unsigned char*)buf, len);
+					if (rc == len)
+							printf("send PUBACK Successfully");
+					else
+							printf("send PUBACK failed");                                        
+				}
+				msgtypes = 0;
+				break;
+			case PUBACK:        
+				printf("PUBACK!");
+				msgtypes = 0;
+				break;
+			case PUBREC:        
+				printf("PUBREC!");     //just for qos2
+				break;
+			case PUBREL:        
+				printf("PUBREL!");        //just for qos2
+				break;
+			case PUBCOMP:        
+				printf("PUBCOMP!");        //just for qos2
+				break;
+			case PINGREQ:        
+				len = MQTTSerialize_pingreq(buf, buflen);
+				rc = transport_sendPacketBuffer(mysock, (unsigned char*)buf, len);
+				if (rc == len)
+						printf("send PINGREQ Successfully\n");
+				else
+						printf("send PINGREQ failed\n");        
+				printf("time to ping mqtt server to take alive!");
+				msgtypes = 0;
+				break;
+			case PINGRESP:        
+				printf("mqtt server Pong");                                                        
+				msgtypes = 0;
+				break;
+		}
+		memset(buf,0,buflen);
+		rc=MQTTPacket_read(buf, buflen, transport_getdata);        
+		if(rc >0)
+		{
+				msgtypes = rc;
+				printf("MQTT is get recv:");
+		}
+		//gpio_write(&gpio_led, !gpio_read(&gpio_led));
+	}
+ 
+exit:
+    transport_close(mysock);
+    printf("mqtt thread exit.");
+    //vTaskDelete(NULL);
+}
+#endif

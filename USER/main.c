@@ -92,6 +92,7 @@ int main(void)
 	LED_Init();  			//LED初始化
 	KEY_Init();  			//按键初始化
 	LCD_Init();  			//LCD初始化
+	TIM3_Int_Init(100-1, 8400-1);	//10ms
 	
 	FSMC_SRAM_Init();		//SRAM初始化
 	
