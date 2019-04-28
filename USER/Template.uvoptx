@@ -211,66 +211,82 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>121</LineNumber>
+          <LineNumber>98</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134219014</Address>
+          <Address>134220904</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\main.c</Filename>
+          <Filename>.\mqtt_client.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Template\main.c\121</Expression>
+          <Expression>\\Template\mqtt_client.c\98</Expression>
         </Bp>
         <Bp>
           <Number>1</Number>
           <Type>0</Type>
-          <LineNumber>49</LineNumber>
+          <LineNumber>96</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134254420</Address>
+          <Address>134220900</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\LWIP\lwip_app\tcp_client_demo\tcp_client_demo.c</Filename>
+          <Filename>.\mqtt_client.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Template\../LWIP/lwip_app/tcp_client_demo/tcp_client_demo.c\49</Expression>
+          <Expression>\\Template\mqtt_client.c\96</Expression>
         </Bp>
         <Bp>
           <Number>2</Number>
           <Type>0</Type>
-          <LineNumber>60</LineNumber>
+          <LineNumber>298</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134254496</Address>
+          <Address>134220332</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\LWIP\lwip_app\tcp_client_demo\tcp_client_demo.c</Filename>
+          <Filename>.\mqtt_client.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Template\../LWIP/lwip_app/tcp_client_demo/tcp_client_demo.c\60</Expression>
+          <Expression>\\Template\mqtt_client.c\298</Expression>
         </Bp>
         <Bp>
           <Number>3</Number>
           <Type>0</Type>
-          <LineNumber>56</LineNumber>
+          <LineNumber>289</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134254486</Address>
+          <Address>134220290</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\LWIP\lwip_app\tcp_client_demo\tcp_client_demo.c</Filename>
+          <Filename>.\mqtt_client.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Template\../LWIP/lwip_app/tcp_client_demo/tcp_client_demo.c\56</Expression>
+          <Expression>\\Template\mqtt_client.c\289</Expression>
+        </Bp>
+        <Bp>
+          <Number>4</Number>
+          <Type>0</Type>
+          <LineNumber>291</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134220294</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>.\mqtt_client.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\Template\mqtt_client.c\291</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -396,7 +412,7 @@
 
   <Group>
     <GroupName>HARDWARE</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

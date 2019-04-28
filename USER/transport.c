@@ -65,9 +65,9 @@
 //#include <sys/ioctl.h>
 //#include <net/if.h>
 #endif
-#include "lcd.h"
 
-static int mysock = INVALID_SOCKET;
+
+int g_sockfd = INVALID_SOCKET;
 #define MQTT_CLIENT_RX_BUFSIZE	2000	//接收缓冲区长度
 /**
 This simple low-level implementation assumes a single connection for a single thread. Thus, a static
@@ -90,7 +90,7 @@ int transport_sendPacketBuffer(int sock, unsigned char* buf, int buflen)
 
 int transport_getdata(unsigned char* buf, int count)
 {
-	int rc = recv(mysock, buf, count, 0);
+	int rc = recv(g_sockfd, buf, count, 0);
 	//printf("received %d bytes count %d\n", rc, (int)count);
 	return rc;
 }
@@ -117,18 +117,13 @@ removing indirections
 */
 int transport_open(char *addr, int port)	//create a socket and connect the server
 {
-	int *sock = &mysock;
+	int sockfd = -1;
 	struct hostent *server;
 	struct sockaddr_in serv_addr;
-	//static struct timeval tv;
 	int timeout = 1000;
-	//fd_set readset;
-	//fd_set writeset;
-	
-	*sock = socket(AF_INET, SOCK_STREAM, 0);
-	if(*sock < 0)
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if(sockfd < 0)
 		printf("[ERROR] Create socket failed.\n");
-	
 	server = gethostbyname(addr);
 	if(server == NULL)
 		printf("[ERROR] Get host ip failed\n");
@@ -138,15 +133,13 @@ int transport_open(char *addr, int port)	//create a socket and connect the serve
 	serv_addr.sin_port = htons(port);
 	memcpy(&serv_addr.sin_addr.s_addr, server->h_addr_list[0], server->h_length);
 	
-	if(connect(*sock, (struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0){
+	if(connect(sockfd, (struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0){
 		printf("[ERROR] connect failed\n");
 		return -1;
 	}
 	
-	//tv.tv_sec = 10;
-	//tv.tv_usec = 0;
-	setsockopt(mysock, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
-	return mysock;
+	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
+	return sockfd;
 }
 
 int transport_close(int sock)
